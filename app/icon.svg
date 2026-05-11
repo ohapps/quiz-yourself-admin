@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none">
+  <rect width="32" height="32" rx="8" fill="#4f46e5"/>
+  <g transform="translate(6, 6)" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <ellipse cx="10" cy="5" rx="9" ry="3"/>
+    <path d="M19 10c0 1.657-4.03 3-9 3s-9-1.343-9-3"/>
+    <path d="M1 5v10c0 1.657 4.03 3 9 3s9-1.343 9-3V5"/>
+  </g>
+</svg>
