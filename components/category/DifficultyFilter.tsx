@@ -12,7 +12,7 @@ export function DifficultyFilter({ categoryId, currentDifficulty }: DifficultyFi
   return (
     <div className="flex items-center gap-2 mb-6 overflow-x-auto pb-2">
       <span className="text-sm font-medium text-slate-500 mr-2">Filter:</span>
-      {levels.map((level) => {
+      {levels.map((level: string) => {
         const isAll = level === "All";
         const isActive = isAll ? !currentDifficulty : currentDifficulty === level;
         const href = isAll ? `/category/${categoryId}` : `/category/${categoryId}?difficulty=${level}`;

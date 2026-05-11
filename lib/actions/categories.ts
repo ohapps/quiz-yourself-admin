@@ -23,7 +23,7 @@ export async function createCategory(data: { name: string; parentId?: string | n
   } catch (error) {
     console.error("Failed to create category:", error);
     if (error instanceof z.ZodError) {
-      return { success: false, error: error.issues.map(e => e.message).join(", ") };
+      return { success: false, error: error.issues.map((e: z.ZodIssue) => e.message).join(", ") };
     }
     return { success: false, error: "Failed to create category" };
   }
@@ -41,7 +41,7 @@ export async function updateCategory(id: string, data: { name: string; parentId?
   } catch (error) {
     console.error("Failed to update category:", error);
     if (error instanceof z.ZodError) {
-      return { success: false, error: error.issues.map(e => e.message).join(", ") };
+      return { success: false, error: error.issues.map((e: z.ZodIssue) => e.message).join(", ") };
     }
     return { success: false, error: "Failed to update category" };
   }

@@ -37,7 +37,7 @@ export function CategoryForm({ initialData, onSuccess, onCancel, title }: Catego
       if (result.success && result.data) {
         // Filter out the current category to prevent self-referencing
         const filtered = initialData 
-          ? result.data.filter(cat => cat.id !== initialData.id)
+          ? result.data.filter((cat: { id: string; name: string }) => cat.id !== initialData.id)
           : result.data;
         setAvailableCategories(filtered);
       }
@@ -109,7 +109,7 @@ export function CategoryForm({ initialData, onSuccess, onCancel, title }: Catego
                   className="w-full px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 appearance-none disabled:opacity-50"
                 >
                   <option value="">None (Top Level)</option>
-                  {availableCategories.map(cat => (
+                  {availableCategories.map((cat: { id: string; name: string }) => (
                     <option key={cat.id} value={cat.id}>{cat.name}</option>
                   ))}
                 </select>

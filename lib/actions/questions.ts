@@ -43,7 +43,7 @@ export async function createQuestion(data: {
   } catch (error) {
     console.error("Failed to create question:", error);
     if (error instanceof z.ZodError) {
-      return { success: false, error: error.issues.map(e => e.message).join(", ") };
+      return { success: false, error: error.issues.map((e: z.ZodIssue) => e.message).join(", ") };
     }
     return { success: false, error: "Failed to create question" };
   }
@@ -75,7 +75,7 @@ export async function updateQuestion(
   } catch (error) {
     console.error("Failed to update question:", error);
     if (error instanceof z.ZodError) {
-      return { success: false, error: error.issues.map(e => e.message).join(", ") };
+      return { success: false, error: error.issues.map((e: z.ZodIssue) => e.message).join(", ") };
     }
     return { success: false, error: "Failed to update question" };
   }

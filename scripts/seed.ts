@@ -31,7 +31,7 @@ async function main() {
 
     if (category.questions && category.questions.length > 0) {
       await prisma.question.createMany({
-        data: category.questions.map(q => ({
+        data: category.questions.map((q: any) => ({
           id: q.id,
           question: q.question,
           options: q.options,

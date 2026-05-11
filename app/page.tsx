@@ -6,6 +6,7 @@ import { Header } from "@/components/dashboard/Header";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { ActionBar } from "@/components/dashboard/ActionBar";
 import { CategoryCard } from "@/components/dashboard/CategoryCard";
+import { CategoryWithCounts } from "@/lib/data/types";
 
 interface PageProps {
   searchParams: Promise<{ q?: string }>;
@@ -18,7 +19,7 @@ export default async function AdminDashboard({ searchParams }: PageProps) {
   const categories = await getCategoriesWithQuestionCount(q);
   const version = await getContentVersion();
 
-  const totalQuestions = categories.reduce((sum, cat) => sum + cat._count.questions, 0);
+  const totalQuestions = categories.reduce((sum: number, cat: CategoryWithCounts) => sum + cat._count.questions, 0);
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans selection:bg-indigo-500/30">
@@ -57,7 +58,7 @@ export default async function AdminDashboard({ searchParams }: PageProps) {
         {/* Categories Grid */}
         {categories.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {categories.map((category) => (
+            {categories.map((category: CategoryWithCounts) => (
               <CategoryCard key={category.id} category={category} />
             ))}
           </div>

@@ -11,7 +11,7 @@ export function isAllowedEmail(email: string | undefined | null): boolean {
   const allowedEmails = process.env.ALLOWED_EMAILS || "";
   const allowList = allowedEmails
     .split(",")
-    .map((e) => e.trim().toLowerCase())
+    .map((e: string) => e.trim().toLowerCase())
     .filter(Boolean);
 
   return allowList.includes(email.toLowerCase());

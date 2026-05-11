@@ -115,7 +115,7 @@ export function QuestionForm({ categoryId, initialData, onSuccess, onCancel, tit
               onChange={(e) => setDifficulty(e.target.value as DifficultyLevel)}
               className="w-full px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
             >
-              {Object.values(DifficultyLevel).map(level => (
+              {Object.values(DifficultyLevel).map((level: string) => (
                 <option key={level} value={level}>{level}</option>
               ))}
             </select>
@@ -124,7 +124,7 @@ export function QuestionForm({ categoryId, initialData, onSuccess, onCancel, tit
           <div>
             <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Options (Select the correct one)</label>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {options.map((opt, idx) => (
+              {options.map((opt: string, idx: number) => (
                 <div key={idx} className={`flex items-center gap-2 p-2 rounded-xl border ${correctAnswerIndex === idx ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20' : 'border-slate-200 dark:border-slate-700'}`}>
                   <input 
                     type="radio" 

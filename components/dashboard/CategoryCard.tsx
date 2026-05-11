@@ -77,7 +77,7 @@ export function CategoryCard({ category }: CategoryCardProps) {
             <div className="space-y-2 mt-4 pt-4 border-t border-slate-100 dark:border-slate-800">
               <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Subcategories</h4>
               <div className="grid grid-cols-1 gap-1.5">
-                {category.subCategories.map(sub => (
+                {category.subCategories.map((sub: any) => (
                   <Link 
                     key={sub.id} 
                     href={`/category/${sub.id}`}

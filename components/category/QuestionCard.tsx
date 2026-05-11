@@ -123,7 +123,7 @@ export function QuestionCard({ question: q, index }: QuestionCardProps) {
           </div>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pl-11">
-            {q.options.map((option, idx) => {
+            {q.options.map((option: string, idx: number) => {
               const isCorrect = option === q.correctAnswer;
               return (
                 <div 
