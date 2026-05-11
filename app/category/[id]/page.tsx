@@ -57,7 +57,7 @@ export default async function CategoryPage(props: PageProps) {
           </div>
         ) : (
           <div className="space-y-6">
-            {filteredQuestions.map((q: Question, index) => (
+            {filteredQuestions.map((q: Question, index: number) => (
               <QuestionCard key={q.id} question={q} index={index} />
             ))}
           </div>
