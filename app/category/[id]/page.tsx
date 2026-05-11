@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { requireAuth } from "@/lib/auth-utils";
 import { getCategoryWithQuestionsById } from "@/lib/data/categories";
+import { Question } from "@/lib/data/types";
 import { CategoryHeader } from "@/components/category/CategoryHeader";
 import { EmptyState } from "@/components/category/EmptyState";
 import { QuestionCard } from "@/components/category/QuestionCard";
@@ -24,7 +25,7 @@ export default async function CategoryPage(props: PageProps) {
 
   const difficultyFilter = searchParams.difficulty;
   const filteredQuestions = difficultyFilter 
-    ? category.questions.filter(q => q.difficulty === difficultyFilter)
+    ? category.questions.filter((q: Question) => q.difficulty === difficultyFilter)
     : category.questions;
 
   return (
@@ -56,7 +57,7 @@ export default async function CategoryPage(props: PageProps) {
           </div>
         ) : (
           <div className="space-y-6">
-            {filteredQuestions.map((q, index) => (
+            {filteredQuestions.map((q: Question, index) => (
               <QuestionCard key={q.id} question={q} index={index} />
             ))}
           </div>

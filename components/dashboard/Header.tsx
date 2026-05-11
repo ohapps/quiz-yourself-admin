@@ -1,4 +1,5 @@
 import { Database, RefreshCw, LogOut } from "lucide-react";
+import Image from "next/image";
 
 interface HeaderProps {
   version: number;
@@ -31,10 +32,13 @@ export function Header({ version, user }: HeaderProps) {
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-2">
                 {user.picture ? (
-                  <img
+                  <Image
                     src={user.picture}
                     alt={user.name || "User"}
+                    width={32}
+                    height={32}
                     className="w-8 h-8 rounded-full border-2 border-indigo-200 dark:border-indigo-700"
+                    unoptimized
                   />
                 ) : (
                   <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center text-indigo-600 dark:text-indigo-400 text-sm font-bold">

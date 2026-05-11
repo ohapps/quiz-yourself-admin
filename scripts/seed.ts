@@ -21,7 +21,7 @@ async function main() {
 
   for (const category of CATEGORIES) {
     console.log(`Seeding category: ${category.name}`);
-    const createdCategory = await prisma.category.create({
+    await prisma.category.create({
       data: {
         id: category.id,
         name: category.name,

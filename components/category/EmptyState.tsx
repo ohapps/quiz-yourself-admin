@@ -8,7 +8,7 @@ export function EmptyState() {
       </div>
       <h3 className="text-xl font-bold text-slate-800 dark:text-slate-200 mb-2">No questions yet</h3>
       <p className="text-slate-500 dark:text-slate-400 max-w-sm">
-        This category doesn't have any questions configured. Click the "Add Question" button to get started.
+        This category doesn&apos;t have any questions configured. Click the &quot;Add Question&quot; button to get started.
       </p>
     </div>
   );
