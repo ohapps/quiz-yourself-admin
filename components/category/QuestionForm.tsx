@@ -68,10 +68,10 @@ export function QuestionForm({ categoryId, initialData, onSuccess, onCancel, tit
       categoryId
     };
 
-    const result = initialData 
+    const result = initialData
       ? await updateQuestion(initialData.id, payload)
       : await createQuestion(payload);
-    
+
     setIsSaving(false);
     if (result.success) {
       onSuccess();
@@ -87,7 +87,7 @@ export function QuestionForm({ categoryId, initialData, onSuccess, onCancel, tit
           <h3 className="text-lg font-bold text-indigo-900 dark:text-indigo-200">
             {title || (initialData ? `Editing Question #${(index || 0) + 1}` : "Create New Question")}
           </h3>
-          <button 
+          <button
             onClick={onCancel}
             className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 rounded-md transition-colors"
           >
@@ -98,8 +98,8 @@ export function QuestionForm({ categoryId, initialData, onSuccess, onCancel, tit
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Question Text</label>
-            <input 
-              type="text" 
+            <input
+              type="text"
               autoFocus={!initialData}
               value={questionText}
               onChange={(e) => setQuestionText(e.target.value)}
@@ -126,14 +126,14 @@ export function QuestionForm({ categoryId, initialData, onSuccess, onCancel, tit
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {options.map((opt: string, idx: number) => (
                 <div key={idx} className={`flex items-center gap-2 p-2 rounded-xl border ${correctAnswerIndex === idx ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20' : 'border-slate-200 dark:border-slate-700'}`}>
-                  <input 
-                    type="radio" 
-                    name={`correct-${initialData?.id || 'new'}`} 
+                  <input
+                    type="radio"
+                    name={`correct-${initialData?.id || 'new'}`}
                     checked={correctAnswerIndex === idx}
                     onChange={() => setCorrectAnswerIndex(idx)}
                     className="w-4 h-4 text-emerald-600 focus:ring-emerald-500 ml-2"
                   />
-                  <input 
+                  <input
                     type="text"
                     value={opt}
                     onChange={(e) => handleOptionChange(idx, e.target.value)}
@@ -146,13 +146,13 @@ export function QuestionForm({ categoryId, initialData, onSuccess, onCancel, tit
           </div>
 
           <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-indigo-100 dark:border-indigo-800/30">
-            <button 
+            <button
               onClick={onCancel}
               className="px-4 py-2 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors"
             >
               Cancel
             </button>
-            <button 
+            <button
               onClick={handleSave}
               disabled={isSaving}
               className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-semibold shadow-md transition-all flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
@@ -164,7 +164,7 @@ export function QuestionForm({ categoryId, initialData, onSuccess, onCancel, tit
         </div>
       </div>
 
-      <AlertModal 
+      <AlertModal
         isOpen={alert.isOpen}
         onClose={() => setAlert(prev => ({ ...prev, isOpen: false }))}
         title={alert.title}

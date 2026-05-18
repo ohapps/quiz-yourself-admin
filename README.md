@@ -36,7 +36,7 @@ The easiest way to deploy your Next.js app is to use the [Vercel Platform](https
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
 
 http://localhost:3000/api/content?version=12
+https://quiz-yourself-admin.ohapps.com/api/content?version=12
 
 Tasks
-- setup deployment
-- add AI integration to generate questions
+- verify the web site is responsive

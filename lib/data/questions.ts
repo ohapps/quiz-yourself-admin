@@ -1,5 +1,13 @@
 import { prisma } from "@/lib/prisma";
 
+export async function getQuestionsByCategory(categoryId: string) {
+  const existing = await prisma.question.findMany({
+    where: { categoryId },
+    select: { question: true }
+  });
+  return existing.map(e => e.question);
+}
+
 export async function updateQuestionRecord(
   id: string,
   data: {
@@ -35,6 +43,24 @@ export async function createQuestionRecord(data: {
       difficulty: data.difficulty,
       categoryId: data.categoryId,
     }
+  });
+}
+
+export async function createMultipleQuestionRecords(data: {
+  question: string;
+  options: string[];
+  correctAnswer: string;
+  difficulty: string;
+  categoryId: string;
+}[]) {
+  return await prisma.question.createMany({
+    data: data.map(q => ({
+      question: q.question,
+      options: q.options,
+      correctAnswer: q.correctAnswer,
+      difficulty: q.difficulty,
+      categoryId: q.categoryId,
+    }))
   });
 }
 

@@ -35,6 +35,7 @@ export default async function CategoryPage(props: PageProps) {
         categoryId={category.id}
         categoryName={category.name} 
         questionCount={filteredQuestions.length} 
+        currentDifficulty={difficultyFilter}
       />
 
       <main className="container mx-auto px-4 py-8 max-w-5xl">
