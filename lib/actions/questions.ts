@@ -1,10 +1,10 @@
 "use server";
 
+import { incrementContentVersion } from "@/lib/data/app-state";
+import { createQuestionRecord, deleteQuestionRecord, updateQuestionRecord } from "@/lib/data/questions";
+import { DifficultyLevel } from "@/lib/data/types";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { DifficultyLevel } from "@/lib/data/types";
-import { updateQuestionRecord, createQuestionRecord, deleteQuestionRecord } from "@/lib/data/questions";
-import { incrementContentVersion } from "@/lib/data/app-state";
 
 const QuestionSchema = z.object({
   question: z.string().min(1, "Question text is required"),
@@ -14,6 +14,25 @@ const QuestionSchema = z.object({
     message: "Difficulty must be Easy, Medium, or Hard"
   }),
   categoryId: z.string().min(1, "Category ID is required"),
+  imageUrl: z.string()
+    .url("Image URL must be a valid URL starting with http:// or https://")
+    .refine((url) => {
+      try {
+        const parsed = new URL(url);
+        const pathname = parsed.pathname.toLowerCase();
+        return (
+          pathname.endsWith(".png") ||
+          pathname.endsWith(".jpg") ||
+          pathname.endsWith(".jpeg") ||
+          pathname.endsWith(".gif") ||
+          pathname.endsWith(".webp") ||
+          pathname.endsWith(".svg")
+        );
+      } catch {
+        return false;
+      }
+    }, "Image URL must end with a supported format: .png, .jpg, .jpeg, .gif, .webp, or .svg")
+    .nullish(),
 }).refine(data => data.options.includes(data.correctAnswer), {
   message: "Correct answer must be one of the provided options",
   path: ["correctAnswer"]
@@ -25,6 +44,7 @@ export async function createQuestion(data: {
   correctAnswer: string;
   difficulty: string;
   categoryId: string;
+  imageUrl?: string | null;
 }) {
   try {
     const validatedData = QuestionSchema.parse(data);
@@ -35,6 +55,7 @@ export async function createQuestion(data: {
       correctAnswer: validatedData.correctAnswer,
       difficulty: validatedData.difficulty,
       categoryId: validatedData.categoryId,
+      imageUrl: validatedData.imageUrl,
     });
 
     await incrementContentVersion();
@@ -57,6 +78,7 @@ export async function updateQuestion(
     correctAnswer: string;
     difficulty: string;
     categoryId: string;
+    imageUrl?: string | null;
   }
 ) {
   try {
@@ -67,6 +89,7 @@ export async function updateQuestion(
       options: validatedData.options,
       correctAnswer: validatedData.correctAnswer,
       difficulty: validatedData.difficulty,
+      imageUrl: validatedData.imageUrl,
     });
 
     await incrementContentVersion();

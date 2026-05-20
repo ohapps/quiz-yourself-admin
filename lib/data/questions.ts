@@ -15,6 +15,7 @@ export async function updateQuestionRecord(
     options: string[];
     correctAnswer: string;
     difficulty: string;
+    imageUrl?: string | null;
   }
 ) {
   return await prisma.question.update({
@@ -24,6 +25,7 @@ export async function updateQuestionRecord(
       options: data.options,
       correctAnswer: data.correctAnswer,
       difficulty: data.difficulty,
+      imageUrl: data.imageUrl,
     }
   });
 }
@@ -34,6 +36,7 @@ export async function createQuestionRecord(data: {
   correctAnswer: string;
   difficulty: string;
   categoryId: string;
+  imageUrl?: string | null;
 }) {
   return await prisma.question.create({
     data: {
@@ -42,6 +45,7 @@ export async function createQuestionRecord(data: {
       correctAnswer: data.correctAnswer,
       difficulty: data.difficulty,
       categoryId: data.categoryId,
+      imageUrl: data.imageUrl,
     }
   });
 }
@@ -52,6 +56,7 @@ export async function createMultipleQuestionRecords(data: {
   correctAnswer: string;
   difficulty: string;
   categoryId: string;
+  imageUrl?: string | null;
 }[]) {
   return await prisma.question.createMany({
     data: data.map(q => ({
@@ -60,6 +65,7 @@ export async function createMultipleQuestionRecords(data: {
       correctAnswer: q.correctAnswer,
       difficulty: q.difficulty,
       categoryId: q.categoryId,
+      imageUrl: q.imageUrl,
     }))
   });
 }

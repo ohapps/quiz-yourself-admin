@@ -13,6 +13,9 @@ const GeneratedQuestionSchema = z.object({
   options: z.array(z.string()).length(4).describe("Exactly 4 possible answers for the question."),
   correctAnswer: z.string().describe("The correct answer. Must exactly match one of the options."),
   difficulty: z.nativeEnum(DifficultyLevel).describe("The difficulty of the question: Easy, Medium, or Hard."),
+  imageUrl: z.string().nullish().describe(
+    "A valid, public, absolute image URL starting with http:// or https:// and ending with .png, .jpg, .jpeg, .gif, .webp, or .svg. Populate this ONLY if the prompt asks for questions with images, or if a visual reference is highly beneficial. Otherwise, set to null."
+  ),
 });
 
 export async function generateMultipleQuestions(
@@ -38,6 +41,7 @@ export async function generateMultipleQuestions(
       One of the options must be the correct answer.
       ${difficulty && difficulty !== 'Mixed' ? `Set the difficulty to exactly ${difficulty} for all questions.` : `Set a realistic difficulty (Easy, Medium, Hard).`}
       ${prompt ? `Additional instructions: ${prompt}` : ''}
+      If the user instructions or prompt ask for questions with images, or if the question requires visual context, provide a valid, public, absolute image URL in the imageUrl field. The URL must end with one of the supported formats (.png, .jpg, .jpeg, .gif, .webp, .svg). If no image is requested or needed, set imageUrl to null.
       Ensure all questions are unique, interesting, and do not repeat.${existingQuestionsContext}`,
     });
 
@@ -47,11 +51,36 @@ export async function generateMultipleQuestions(
       return { success: false, error: "Failed to generate valid questions." };
     }
 
-    const recordsToInsert = validQuestions.map(q => ({
-      ...q,
-      difficulty: difficulty && difficulty !== 'Mixed' ? difficulty : q.difficulty,
-      categoryId
-    }));
+    const recordsToInsert = validQuestions.map(q => {
+      let cleanImageUrl = q.imageUrl || null;
+      if (cleanImageUrl) {
+        try {
+          const parsed = new URL(cleanImageUrl);
+          const pathname = parsed.pathname.toLowerCase();
+          const isValidExtension = 
+            pathname.endsWith(".png") ||
+            pathname.endsWith(".jpg") ||
+            pathname.endsWith(".jpeg") ||
+            pathname.endsWith(".gif") ||
+            pathname.endsWith(".webp") ||
+            pathname.endsWith(".svg");
+          if (!isValidExtension) {
+            cleanImageUrl = null;
+          }
+        } catch {
+          cleanImageUrl = null;
+        }
+      }
+
+      return {
+        question: q.question,
+        options: q.options,
+        correctAnswer: q.correctAnswer,
+        difficulty: difficulty && difficulty !== 'Mixed' ? difficulty : q.difficulty,
+        categoryId,
+        imageUrl: cleanImageUrl,
+      };
+    });
 
     await createMultipleQuestionRecords(recordsToInsert);
     await incrementContentVersion();

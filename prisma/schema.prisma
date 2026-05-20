@@ -24,6 +24,7 @@ model Question {
   shownCount    Int      @default(0)
   categoryId    String
   category      Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  imageUrl      String?
 }
 
 model AppState {

@@ -90,9 +90,16 @@ export function QuestionCard({ question: q, index }: QuestionCardProps) {
               <span className="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-full bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 font-bold text-sm">
                 {index + 1}
               </span>
-              <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100 leading-snug">
-                {q.question}
-              </h3>
+              <div>
+                <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100 leading-snug mb-2">
+                  {q.question}
+                </h3>
+                {q.imageUrl && (
+                  <div className="mb-2 max-w-xs rounded-lg overflow-hidden border border-slate-200 dark:border-slate-800">
+                    <img src={q.imageUrl} alt="Question image" className="max-h-32 object-contain" />
+                  </div>
+                )}
+              </div>
             </div>
             <div className="flex items-center gap-2 flex-shrink-0">
               <span className={`px-2.5 py-1 rounded-md text-xs font-bold uppercase tracking-wider

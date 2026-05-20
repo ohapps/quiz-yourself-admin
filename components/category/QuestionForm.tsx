@@ -19,6 +19,7 @@ export function QuestionForm({ categoryId, initialData, onSuccess, onCancel, tit
   const [isSaving, setIsSaving] = useState(false);
 
   const [questionText, setQuestionText] = useState(initialData?.question || "");
+  const [imageUrl, setImageUrl] = useState(initialData?.imageUrl || "");
   const [difficulty, setDifficulty] = useState(initialData?.difficulty || DifficultyLevel.Easy);
   // Ensure we have exactly 4 options
   const [options, setOptions] = useState<string[]>(() => {
@@ -65,7 +66,8 @@ export function QuestionForm({ categoryId, initialData, onSuccess, onCancel, tit
       difficulty,
       options,
       correctAnswer: options[correctAnswerIndex],
-      categoryId
+      categoryId,
+      imageUrl: imageUrl.trim() || null
     };
 
     const result = initialData
@@ -105,6 +107,17 @@ export function QuestionForm({ categoryId, initialData, onSuccess, onCancel, tit
               onChange={(e) => setQuestionText(e.target.value)}
               className="w-full px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
               placeholder="e.g. What is the capital of France?"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Image URL (Optional)</label>
+            <input
+              type="text"
+              value={imageUrl}
+              onChange={(e) => setImageUrl(e.target.value)}
+              className="w-full px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              placeholder="e.g. https://example.com/flag.png"
             />
           </div>
 
