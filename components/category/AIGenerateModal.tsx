@@ -1,10 +1,17 @@
 "use client";
 
-import { useState } from "react";
-import { X, Sparkles, Loader2 } from "lucide-react";
+import { useState, useEffect } from "react";
+import { X, Sparkles, Loader2, Minus, Plus } from "lucide-react";
 import { generateMultipleQuestions } from "@/lib/actions/ai";
 import { AlertModal } from "@/components/ui/AlertModal";
 import { DifficultyLevel } from "@/lib/data/types";
+import { useAtom } from "jotai";
+import { 
+  aiGenCountAtom, 
+  aiGenPromptAtom, 
+  aiGenDifficultyAtom, 
+  aiGenLastCategoryIdAtom 
+} from "@/atoms/ai-generate";
 
 interface AIGenerateModalProps {
   categoryId: string;
@@ -15,20 +22,31 @@ interface AIGenerateModalProps {
 }
 
 export function AIGenerateModal({ categoryId, categoryName, initialDifficulty, onSuccess, onCancel }: AIGenerateModalProps) {
-  const [count, setCount] = useState<number>(5);
-  const [prompt, setPrompt] = useState<string>("");
-  const [difficulty, setDifficulty] = useState<DifficultyLevel | 'Mixed'>((initialDifficulty as DifficultyLevel) || 'Mixed');
+  const [count, setCount] = useAtom(aiGenCountAtom);
+  const [prompt, setPrompt] = useAtom(aiGenPromptAtom);
+  const [difficultyVal, setDifficulty] = useAtom(aiGenDifficultyAtom);
+  const [lastCategoryId, setLastCategoryId] = useAtom(aiGenLastCategoryIdAtom);
   const [isGenerating, setIsGenerating] = useState(false);
   const [alert, setAlert] = useState<{ isOpen: boolean; title: string; message: string; type: 'info' | 'warning' | 'error' | 'success' }>({
     isOpen: false, title: "", message: "", type: "info"
   });
+
+  // Clear instructions if the category changes
+  useEffect(() => {
+    if (lastCategoryId && lastCategoryId !== categoryId) {
+      setPrompt("");
+    }
+    setLastCategoryId(categoryId);
+  }, [categoryId, lastCategoryId, setPrompt, setLastCategoryId]);
+
+  const difficulty = difficultyVal ?? (initialDifficulty as DifficultyLevel || 'Mixed');
 
   const showAlert = (title: string, message: string, type: 'info' | 'warning' | 'error' | 'success' = 'info') => {
     setAlert({ isOpen: true, title, message, type });
   };
 
   const handleGenerate = async () => {
-    if (count < 1 || count > 20) {
+    if (count === "" || count < 1 || count > 20) {
       showAlert("Invalid Count", "Please select a number between 1 and 20.", "warning");
       return;
     }
@@ -71,14 +89,57 @@ export function AIGenerateModal({ categoryId, categoryName, initialDifficulty, o
             <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">
               Number of Questions
             </label>
-            <input 
-              type="number" 
-              min={1}
-              max={20}
-              value={count}
-              onChange={(e) => setCount(parseInt(e.target.value) || 1)}
-              className="w-full px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  const current = count === "" ? 5 : count;
+                  setCount(Math.max(1, current - 1));
+                }}
+                disabled={isGenerating || count === 1}
+                className="p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50 transition-colors"
+              >
+                <Minus className="w-4 h-4" />
+              </button>
+              
+              <input 
+                type="number" 
+                min={1}
+                max={20}
+                value={count}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (val === "") {
+                    setCount("");
+                  } else {
+                    const parsed = parseInt(val, 10);
+                    setCount(isNaN(parsed) ? "" : parsed);
+                  }
+                }}
+                onBlur={() => {
+                  if (count === "") {
+                    setCount(5);
+                  } else if (count < 1) {
+                    setCount(1);
+                  } else if (count > 20) {
+                    setCount(20);
+                  }
+                }}
+                className="flex-1 text-center px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              />
+
+              <button
+                type="button"
+                onClick={() => {
+                  const current = count === "" ? 5 : count;
+                  setCount(Math.min(20, current + 1));
+                }}
+                disabled={isGenerating || count === 20}
+                className="p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50 transition-colors"
+              >
+                <Plus className="w-4 h-4" />
+              </button>
+            </div>
             <p className="text-xs text-slate-500 mt-1">Generate up to 20 questions at a time.</p>
           </div>
 

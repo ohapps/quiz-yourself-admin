@@ -37,6 +37,3 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 
 http://localhost:3000/api/content?version=12
 https://quiz-yourself-admin.ohapps.com/api/content?version=12
-
-Tasks
-- verify the web site is responsive
