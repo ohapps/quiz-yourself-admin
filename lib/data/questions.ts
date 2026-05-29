@@ -15,6 +15,7 @@ export async function updateQuestionRecord(
     options: string[];
     correctAnswer: string;
     difficulty: string;
+    type?: string;
     imageUrl?: string | null;
   }
 ) {
@@ -25,6 +26,7 @@ export async function updateQuestionRecord(
       options: data.options,
       correctAnswer: data.correctAnswer,
       difficulty: data.difficulty,
+      type: data.type ?? "multiple_choice",
       imageUrl: data.imageUrl,
     }
   });
@@ -35,6 +37,7 @@ export async function createQuestionRecord(data: {
   options: string[];
   correctAnswer: string;
   difficulty: string;
+  type?: string;
   categoryId: string;
   imageUrl?: string | null;
 }) {
@@ -44,6 +47,7 @@ export async function createQuestionRecord(data: {
       options: data.options,
       correctAnswer: data.correctAnswer,
       difficulty: data.difficulty,
+      type: data.type ?? "multiple_choice",
       categoryId: data.categoryId,
       imageUrl: data.imageUrl,
     }
@@ -55,6 +59,7 @@ export async function createMultipleQuestionRecords(data: {
   options: string[];
   correctAnswer: string;
   difficulty: string;
+  type?: string;
   categoryId: string;
   imageUrl?: string | null;
 }[]) {
@@ -64,6 +69,7 @@ export async function createMultipleQuestionRecords(data: {
       options: q.options,
       correctAnswer: q.correctAnswer,
       difficulty: q.difficulty,
+      type: q.type ?? "multiple_choice",
       categoryId: q.categoryId,
       imageUrl: q.imageUrl,
     }))

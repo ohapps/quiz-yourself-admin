@@ -5,3 +5,4 @@ export const aiGenCountAtom = atom<number | "">(5);
 export const aiGenPromptAtom = atom<string>("");
 export const aiGenDifficultyAtom = atom<DifficultyLevel | 'Mixed' | null>(null);
 export const aiGenLastCategoryIdAtom = atom<string | null>(null);
+export const aiGenQuestionTypeAtom = atom<"multiple_choice" | "numeric">("multiple_choice");

@@ -10,7 +10,8 @@ import {
   aiGenCountAtom, 
   aiGenPromptAtom, 
   aiGenDifficultyAtom, 
-  aiGenLastCategoryIdAtom 
+  aiGenLastCategoryIdAtom,
+  aiGenQuestionTypeAtom
 } from "@/atoms/ai-generate";
 
 interface AIGenerateModalProps {
@@ -26,6 +27,7 @@ export function AIGenerateModal({ categoryId, categoryName, initialDifficulty, o
   const [prompt, setPrompt] = useAtom(aiGenPromptAtom);
   const [difficultyVal, setDifficulty] = useAtom(aiGenDifficultyAtom);
   const [lastCategoryId, setLastCategoryId] = useAtom(aiGenLastCategoryIdAtom);
+  const [questionType, setQuestionType] = useAtom(aiGenQuestionTypeAtom);
   const [isGenerating, setIsGenerating] = useState(false);
   const [alert, setAlert] = useState<{ isOpen: boolean; title: string; message: string; type: 'info' | 'warning' | 'error' | 'success' }>({
     isOpen: false, title: "", message: "", type: "info"
@@ -53,7 +55,7 @@ export function AIGenerateModal({ categoryId, categoryName, initialDifficulty, o
 
     setIsGenerating(true);
     try {
-      const result = await generateMultipleQuestions(categoryId, categoryName, count, prompt, difficulty);
+      const result = await generateMultipleQuestions(categoryId, categoryName, count, prompt, difficulty, questionType);
       
       if (result.success) {
         onSuccess();
@@ -141,6 +143,20 @@ export function AIGenerateModal({ categoryId, categoryName, initialDifficulty, o
               </button>
             </div>
             <p className="text-xs text-slate-500 mt-1">Generate up to 20 questions at a time.</p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              Question Type
+            </label>
+            <select
+              value={questionType}
+              onChange={(e) => setQuestionType(e.target.value as "multiple_choice" | "numeric")}
+              className="w-full px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+              <option value="multiple_choice">Multiple Choice</option>
+              <option value="numeric">Numeric</option>
+            </select>
           </div>
 
           <div>

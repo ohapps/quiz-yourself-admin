@@ -21,6 +21,7 @@ model Question {
   options       String[]
   correctAnswer String
   difficulty    String
+  type          String   @default("multiple_choice")
   shownCount    Int      @default(0)
   categoryId    String
   category      Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)

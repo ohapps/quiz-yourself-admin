@@ -6,6 +6,8 @@ import { type Question, DifficultyLevel } from "@/lib/data/types";
 import { createQuestion, updateQuestion } from "@/lib/actions/questions";
 import { AlertModal } from "@/components/ui/AlertModal";
 
+type QuestionType = "multiple_choice" | "numeric";
+
 interface QuestionFormProps {
   categoryId: string;
   initialData?: Question;
@@ -17,32 +19,31 @@ interface QuestionFormProps {
 
 export function QuestionForm({ categoryId, initialData, onSuccess, onCancel, title, index }: QuestionFormProps) {
   const [isSaving, setIsSaving] = useState(false);
-
+  const [questionType, setQuestionType] = useState<QuestionType>(
+    (initialData?.type as QuestionType) || "multiple_choice"
+  );
   const [questionText, setQuestionText] = useState(initialData?.question || "");
   const [imageUrl, setImageUrl] = useState(initialData?.imageUrl || "");
   const [difficulty, setDifficulty] = useState(initialData?.difficulty || DifficultyLevel.Easy);
-  // Ensure we have exactly 4 options
   const [options, setOptions] = useState<string[]>(() => {
-    if (initialData) return [...initialData.options, "", "", "", ""].slice(0, 4);
+    if (initialData && initialData.type !== "numeric") return [...initialData.options, "", "", "", ""].slice(0, 4);
     return ["", "", "", ""];
   });
   const [correctAnswerIndex, setCorrectAnswerIndex] = useState(() => {
-    if (!initialData) return 0;
+    if (!initialData || initialData.type === "numeric") return 0;
     const idx = initialData.options.indexOf(initialData.correctAnswer);
     return idx >= 0 ? idx : 0;
   });
+  const [numericAnswer, setNumericAnswer] = useState(
+    initialData?.type === "numeric" ? initialData.correctAnswer : ""
+  );
 
   const [alert, setAlert] = useState<{
     isOpen: boolean;
     title: string;
     message: string;
     type: 'info' | 'warning' | 'error' | 'success';
-  }>({
-    isOpen: false,
-    title: "",
-    message: "",
-    type: "info"
-  });
+  }>({ isOpen: false, title: "", message: "", type: "info" });
 
   const showAlert = (title: string, message: string, type: 'info' | 'warning' | 'error' | 'success' = 'info') => {
     setAlert({ isOpen: true, title, message, type });
@@ -55,8 +56,18 @@ export function QuestionForm({ categoryId, initialData, onSuccess, onCancel, tit
   };
 
   const handleSave = async () => {
-    if (!questionText.trim() || options.some(opt => !opt.trim())) {
-      showAlert("Incomplete Form", "Please fill out the question and all 4 options.", "warning");
+    if (!questionText.trim()) {
+      showAlert("Incomplete Form", "Please fill out the question text.", "warning");
+      return;
+    }
+
+    if (questionType === "multiple_choice" && options.some(opt => !opt.trim())) {
+      showAlert("Incomplete Form", "Please fill out all 4 options.", "warning");
+      return;
+    }
+
+    if (questionType === "numeric" && (!numericAnswer.trim() || isNaN(Number(numericAnswer)))) {
+      showAlert("Invalid Answer", "Please enter a valid numeric answer.", "warning");
       return;
     }
 
@@ -64,10 +75,11 @@ export function QuestionForm({ categoryId, initialData, onSuccess, onCancel, tit
     const payload = {
       question: questionText,
       difficulty,
-      options,
-      correctAnswer: options[correctAnswerIndex],
+      type: questionType,
+      options: questionType === "multiple_choice" ? options : [],
+      correctAnswer: questionType === "multiple_choice" ? options[correctAnswerIndex] : numericAnswer,
       categoryId,
-      imageUrl: imageUrl.trim() || null
+      imageUrl: imageUrl.trim() || null,
     };
 
     const result = initialData
@@ -99,6 +111,18 @@ export function QuestionForm({ categoryId, initialData, onSuccess, onCancel, tit
 
         <div className="space-y-4">
           <div>
+            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Question Type</label>
+            <select
+              value={questionType}
+              onChange={(e) => setQuestionType(e.target.value as QuestionType)}
+              className="w-full px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+              <option value="multiple_choice">Multiple Choice</option>
+              <option value="numeric">Numeric</option>
+            </select>
+          </div>
+
+          <div>
             <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Question Text</label>
             <input
               type="text"
@@ -106,7 +130,7 @@ export function QuestionForm({ categoryId, initialData, onSuccess, onCancel, tit
               value={questionText}
               onChange={(e) => setQuestionText(e.target.value)}
               className="w-full px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              placeholder="e.g. What is the capital of France?"
+              placeholder={questionType === "numeric" ? "e.g. What is the square root of 144?" : "e.g. What is the capital of France?"}
             />
           </div>
 
@@ -134,29 +158,43 @@ export function QuestionForm({ categoryId, initialData, onSuccess, onCancel, tit
             </select>
           </div>
 
-          <div>
-            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Options (Select the correct one)</label>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {options.map((opt: string, idx: number) => (
-                <div key={idx} className={`flex items-center gap-2 p-2 rounded-xl border ${correctAnswerIndex === idx ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20' : 'border-slate-200 dark:border-slate-700'}`}>
-                  <input
-                    type="radio"
-                    name={`correct-${initialData?.id || 'new'}`}
-                    checked={correctAnswerIndex === idx}
-                    onChange={() => setCorrectAnswerIndex(idx)}
-                    className="w-4 h-4 text-emerald-600 focus:ring-emerald-500 ml-2"
-                  />
-                  <input
-                    type="text"
-                    value={opt}
-                    onChange={(e) => handleOptionChange(idx, e.target.value)}
-                    placeholder={`Option ${idx + 1}`}
-                    className="flex-1 px-2 py-1 bg-transparent text-sm focus:outline-none text-slate-800 dark:text-slate-200"
-                  />
-                </div>
-              ))}
+          {questionType === "multiple_choice" ? (
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Options (Select the correct one)</label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {options.map((opt: string, idx: number) => (
+                  <div key={idx} className={`flex items-center gap-2 p-2 rounded-xl border ${correctAnswerIndex === idx ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20' : 'border-slate-200 dark:border-slate-700'}`}>
+                    <input
+                      type="radio"
+                      name={`correct-${initialData?.id || 'new'}`}
+                      checked={correctAnswerIndex === idx}
+                      onChange={() => setCorrectAnswerIndex(idx)}
+                      className="w-4 h-4 text-emerald-600 focus:ring-emerald-500 ml-2"
+                    />
+                    <input
+                      type="text"
+                      value={opt}
+                      onChange={(e) => handleOptionChange(idx, e.target.value)}
+                      placeholder={`Option ${idx + 1}`}
+                      className="flex-1 px-2 py-1 bg-transparent text-sm focus:outline-none text-slate-800 dark:text-slate-200"
+                    />
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
+          ) : (
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Correct Answer (Number)</label>
+              <input
+                type="text"
+                inputMode="decimal"
+                value={numericAnswer}
+                onChange={(e) => setNumericAnswer(e.target.value)}
+                className="w-full px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                placeholder="e.g. 12"
+              />
+            </div>
+          )}
 
           <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-indigo-100 dark:border-indigo-800/30">
             <button

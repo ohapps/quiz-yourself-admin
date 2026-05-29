@@ -6,14 +6,15 @@ import { DifficultyLevel } from "@/lib/data/types";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
-const QuestionSchema = z.object({
+const QuestionType = z.enum(["multiple_choice", "numeric"]);
+
+const BaseQuestionSchema = z.object({
   question: z.string().min(1, "Question text is required"),
-  options: z.array(z.string().min(1, "Option cannot be empty")).length(4, "Must have exactly 4 options"),
-  correctAnswer: z.string().min(1, "Correct answer is required"),
   difficulty: z.enum(Object.values(DifficultyLevel) as [string, ...string[]], {
     message: "Difficulty must be Easy, Medium, or Hard"
   }),
   categoryId: z.string().min(1, "Category ID is required"),
+  type: QuestionType.default("multiple_choice"),
   imageUrl: z.string()
     .url("Image URL must be a valid URL starting with http:// or https://")
     .refine((url) => {
@@ -33,10 +34,26 @@ const QuestionSchema = z.object({
       }
     }, "Image URL must end with a supported format: .png, .jpg, .jpeg, .gif, .webp, or .svg")
     .nullish(),
-}).refine(data => data.options.includes(data.correctAnswer), {
-  message: "Correct answer must be one of the provided options",
-  path: ["correctAnswer"]
 });
+
+const QuestionSchema = z.discriminatedUnion("type", [
+  BaseQuestionSchema.extend({
+    type: z.literal("multiple_choice"),
+    options: z.array(z.string().min(1, "Option cannot be empty")).length(4, "Must have exactly 4 options"),
+    correctAnswer: z.string().min(1, "Correct answer is required"),
+  }).refine(data => data.options.includes(data.correctAnswer), {
+    message: "Correct answer must be one of the provided options",
+    path: ["correctAnswer"]
+  }),
+  BaseQuestionSchema.extend({
+    type: z.literal("numeric"),
+    options: z.array(z.string()).default([]),
+    correctAnswer: z.string().min(1, "Correct answer is required"),
+  }).refine(data => !isNaN(Number(data.correctAnswer)), {
+    message: "Correct answer must be a valid number",
+    path: ["correctAnswer"]
+  }),
+]);
 
 export async function createQuestion(data: {
   question: string;
@@ -44,6 +61,7 @@ export async function createQuestion(data: {
   correctAnswer: string;
   difficulty: string;
   categoryId: string;
+  type?: string;
   imageUrl?: string | null;
 }) {
   try {
@@ -54,6 +72,7 @@ export async function createQuestion(data: {
       options: validatedData.options,
       correctAnswer: validatedData.correctAnswer,
       difficulty: validatedData.difficulty,
+      type: validatedData.type,
       categoryId: validatedData.categoryId,
       imageUrl: validatedData.imageUrl,
     });
@@ -78,6 +97,7 @@ export async function updateQuestion(
     correctAnswer: string;
     difficulty: string;
     categoryId: string;
+    type?: string;
     imageUrl?: string | null;
   }
 ) {
@@ -89,6 +109,7 @@ export async function updateQuestion(
       options: validatedData.options,
       correctAnswer: validatedData.correctAnswer,
       difficulty: validatedData.difficulty,
+      type: validatedData.type,
       imageUrl: validatedData.imageUrl,
     });
 

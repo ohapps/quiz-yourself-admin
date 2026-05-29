@@ -130,27 +130,34 @@ export function QuestionCard({ question: q, index }: QuestionCardProps) {
           </div>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pl-11">
-            {q.options.map((option: string, idx: number) => {
-              const isCorrect = option === q.correctAnswer;
-              return (
-                <div 
-                  key={idx} 
-                  className={`px-4 py-3 rounded-xl border ${
-                    isCorrect 
-                      ? 'bg-emerald-50 border-emerald-200 dark:bg-emerald-900/20 dark:border-emerald-800/50 text-emerald-800 dark:text-emerald-300' 
-                      : 'bg-slate-50 border-slate-100 dark:bg-slate-800/50 dark:border-slate-800 text-slate-600 dark:text-slate-400'
-                  } flex items-center justify-between transition-colors`}
-                >
-                  <span className="text-sm font-medium">{option}</span>
-                  {isCorrect && (
-                    <span className="flex items-center text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 gap-1">
-                      <AlertCircle className="w-3.5 h-3.5" />
-                      Correct
-                    </span>
-                  )}
-                </div>
-              );
-            })}
+            {q.type === "numeric" ? (
+              <div className="px-4 py-3 rounded-xl border bg-emerald-50 border-emerald-200 dark:bg-emerald-900/20 dark:border-emerald-800/50 text-emerald-800 dark:text-emerald-300 flex items-center justify-between">
+                <span className="text-sm font-medium">Answer: {q.correctAnswer}</span>
+                <span className="text-xs font-bold uppercase tracking-wider text-violet-600 dark:text-violet-400">Numeric</span>
+              </div>
+            ) : (
+              q.options.map((option: string, idx: number) => {
+                const isCorrect = option === q.correctAnswer;
+                return (
+                  <div 
+                    key={idx} 
+                    className={`px-4 py-3 rounded-xl border ${
+                      isCorrect 
+                        ? 'bg-emerald-50 border-emerald-200 dark:bg-emerald-900/20 dark:border-emerald-800/50 text-emerald-800 dark:text-emerald-300' 
+                        : 'bg-slate-50 border-slate-100 dark:bg-slate-800/50 dark:border-slate-800 text-slate-600 dark:text-slate-400'
+                    } flex items-center justify-between transition-colors`}
+                  >
+                    <span className="text-sm font-medium">{option}</span>
+                    {isCorrect && (
+                      <span className="flex items-center text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 gap-1">
+                        <AlertCircle className="w-3.5 h-3.5" />
+                        Correct
+                      </span>
+                    )}
+                  </div>
+                );
+              })
+            )}
           </div>
         </div>
       </div>
