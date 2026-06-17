@@ -9,7 +9,11 @@
     "lint": "eslint",
     "type-check": "tsc --noEmit",
     "postinstall": "prisma generate",
-    "seed": "tsx scripts/seed.ts"
+    "seed": "tsx scripts/seed.ts",
+    "powersync:generate-keys": "tsx scripts/generate-powersync-keys.ts",
+    "powersync:up": "docker-compose up -d",
+    "powersync:down": "docker-compose down",
+    "powersync:logs": "docker-compose logs -f powersync"
   },
   "dependencies": {
     "@ai-sdk/google": "^3.0.75",

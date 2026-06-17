@@ -1,7 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { Pool } from 'pg';
-import { CATEGORIES, CONTENT_VERSION } from './data';
+import { CATEGORIES } from './data';
 import * as dotenv from 'dotenv';
 dotenv.config();
 
@@ -11,13 +11,6 @@ const prisma = new PrismaClient({ adapter });
 
 async function main() {
   console.log('Seeding database...');
-  
-  // Create AppState
-  await prisma.appState.upsert({
-    where: { id: 'default' },
-    update: { contentVersion: CONTENT_VERSION },
-    create: { id: 'default', contentVersion: CONTENT_VERSION },
-  });
 
   for (const category of CATEGORIES) {
     console.log(`Seeding category: ${category.name}`);

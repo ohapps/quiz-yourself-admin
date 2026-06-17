@@ -10,9 +10,12 @@ model Category {
   id            String     @id @default(uuid())
   name          String
   parentId      String?
+  userId        String?    // null = system content (admin-created), non-null = user-created
   parent        Category?  @relation("SubCategories", fields: [parentId], references: [id])
   subCategories Category[] @relation("SubCategories")
   questions     Question[]
+
+  @@index([userId])
 }
 
 model Question {
@@ -24,11 +27,11 @@ model Question {
   type          String   @default("multiple_choice")
   shownCount    Int      @default(0)
   categoryId    String
+  userId        String?  // null = system content (admin-created), non-null = user-created
   category      Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   imageUrl      String?
+
+  @@index([userId])
+  @@index([categoryId])
 }
 
-model AppState {
-  id            String @id @default("default")
-  contentVersion Int    @default(1)
-}

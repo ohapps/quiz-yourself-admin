@@ -3,7 +3,6 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createCategoryRecord, updateCategoryRecord, deleteCategoryRecord } from "@/lib/data/categories";
-import { incrementContentVersion } from "@/lib/data/app-state";
 import { prisma } from "@/lib/prisma";
 
 const CategorySchema = z.object({
@@ -16,7 +15,6 @@ export async function createCategory(data: { name: string; parentId?: string | n
     const validatedData = CategorySchema.parse(data);
 
     await createCategoryRecord(validatedData.name, validatedData.parentId);
-    await incrementContentVersion();
 
     revalidatePath("/");
     return { success: true };
@@ -34,7 +32,6 @@ export async function updateCategory(id: string, data: { name: string; parentId?
     const validatedData = CategorySchema.parse(data);
 
     await updateCategoryRecord(id, validatedData.name, validatedData.parentId);
-    await incrementContentVersion();
 
     revalidatePath("/");
     return { success: true };
@@ -50,7 +47,6 @@ export async function updateCategory(id: string, data: { name: string; parentId?
 export async function deleteCategory(id: string) {
   try {
     await deleteCategoryRecord(id);
-    await incrementContentVersion();
 
     revalidatePath("/");
     return { success: true };

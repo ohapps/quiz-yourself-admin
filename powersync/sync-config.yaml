@@ -1,0 +1,17 @@
+config:
+  edition: 3
+
+streams:
+  # System content — syncs to all users (admin-created, userId IS NULL)
+  global:
+    auto_subscribe: true
+    queries:
+      - SELECT "id", "name", "parentId", "userId" FROM "Category" WHERE "userId" IS NULL
+      - SELECT "id", "question", "options", "correctAnswer", "difficulty", "type", "shownCount", "categoryId", "imageUrl", "userId" FROM "Question" WHERE "userId" IS NULL
+
+  # User content — syncs only to the user who created it
+  user_data:
+    auto_subscribe: true
+    queries:
+      - SELECT "id", "name", "parentId", "userId" FROM "Category" WHERE "userId" = auth.user_id()
+      - SELECT "id", "question", "options", "correctAnswer", "difficulty", "type", "shownCount", "categoryId", "imageUrl", "userId" FROM "Question" WHERE "userId" = auth.user_id()

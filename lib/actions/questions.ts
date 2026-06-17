@@ -1,6 +1,5 @@
 "use server";
 
-import { incrementContentVersion } from "@/lib/data/app-state";
 import { createQuestionRecord, deleteQuestionRecord, updateQuestionRecord } from "@/lib/data/questions";
 import { DifficultyLevel } from "@/lib/data/types";
 import { revalidatePath } from "next/cache";
@@ -77,7 +76,6 @@ export async function createQuestion(data: {
       imageUrl: validatedData.imageUrl,
     });
 
-    await incrementContentVersion();
     revalidatePath(`/category/${validatedData.categoryId}`);
     return { success: true };
   } catch (error) {
@@ -113,7 +111,6 @@ export async function updateQuestion(
       imageUrl: validatedData.imageUrl,
     });
 
-    await incrementContentVersion();
     revalidatePath(`/category/${validatedData.categoryId}`);
     return { success: true };
   } catch (error) {
@@ -128,7 +125,6 @@ export async function updateQuestion(
 export async function deleteQuestion(id: string, categoryId: string) {
   try {
     await deleteQuestionRecord(id);
-    await incrementContentVersion();
     revalidatePath(`/category/${categoryId}`);
     return { success: true };
   } catch (error) {

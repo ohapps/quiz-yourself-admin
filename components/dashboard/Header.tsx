@@ -1,8 +1,7 @@
-import { Database, RefreshCw, LogOut } from "lucide-react";
+import { Database, LogOut } from "lucide-react";
 import Image from "next/image";
 
 interface HeaderProps {
-  version: number;
   user?: {
     name?: string;
     email?: string;
@@ -10,7 +9,7 @@ interface HeaderProps {
   };
 }
 
-export function Header({ version, user }: HeaderProps) {
+export function Header({ user }: HeaderProps) {
   return (
     <header className="sticky top-0 z-50 w-full backdrop-blur-xl bg-white/70 dark:bg-slate-900/70 border-b border-slate-200 dark:border-slate-800">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
@@ -23,10 +22,6 @@ export function Header({ version, user }: HeaderProps) {
           </h1>
         </div>
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-full text-sm font-medium border border-indigo-100 dark:border-indigo-800/50">
-            <RefreshCw className="w-4 h-4" />
-            <span>v{version}</span>
-          </div>
 
           {user && (
             <div className="flex items-center gap-3">

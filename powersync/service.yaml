@@ -1,0 +1,27 @@
+telemetry:
+  disable_telemetry_sharing: true
+
+replication:
+  connections:
+    - type: postgresql
+      uri: !env PS_DATA_SOURCE_URI
+      sslmode: disable
+
+storage:
+  type: mongodb
+  uri: !env PS_MONGO_URI
+
+port: !env PS_PORT
+
+sync_config:
+  path: sync-config.yaml
+
+client_auth:
+  jwks_uri: !env PS_JWKS_URL
+  audience: ["powersync-dev"]
+  # Allow local (non-HTTPS) JWKS URLs for development
+  allow_local_jwks: true
+
+api:
+  tokens:
+    - powersync-dev-token

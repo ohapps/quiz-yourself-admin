@@ -10,9 +10,10 @@ import { deleteCategory } from "@/lib/actions/categories";
 
 interface CategoryCardProps {
   category: CategoryWithCounts;
+  readOnly?: boolean;
 }
 
-export function CategoryCard({ category }: CategoryCardProps) {
+export function CategoryCard({ category, readOnly = false }: CategoryCardProps) {
   const [showMenu, setShowMenu] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -38,30 +39,34 @@ export function CategoryCard({ category }: CategoryCardProps) {
               <Folder className="w-6 h-6" />
             </div>
             <div className="relative">
-              <button 
-                onClick={() => setShowMenu(!showMenu)}
-                className="text-slate-400 hover:text-indigo-600 transition-colors p-1"
-              >
-                <Settings className="w-4 h-4" />
-              </button>
-              
-              {showMenu && (
+              {!readOnly && (
                 <>
-                  <div className="fixed inset-0 z-10" onClick={() => setShowMenu(false)} />
-                  <div className="absolute right-0 mt-2 w-40 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl z-20 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
-                    <button 
-                      onClick={() => { setIsEditing(true); setShowMenu(false); }}
-                      className="w-full px-4 py-2 text-left text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50 flex items-center gap-2 transition-colors"
-                    >
-                      <Edit className="w-3.5 h-3.5" /> Edit Name
-                    </button>
-                    <button 
-                      onClick={() => { setIsDeleting(true); setShowMenu(false); }}
-                      className="w-full px-4 py-2 text-left text-sm text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/30 flex items-center gap-2 transition-colors"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" /> Delete
-                    </button>
-                  </div>
+                  <button 
+                    onClick={() => setShowMenu(!showMenu)}
+                    className="text-slate-400 hover:text-indigo-600 transition-colors p-1"
+                  >
+                    <Settings className="w-4 h-4" />
+                  </button>
+                  
+                  {showMenu && (
+                    <>
+                      <div className="fixed inset-0 z-10" onClick={() => setShowMenu(false)} />
+                      <div className="absolute right-0 mt-2 w-40 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl z-20 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+                        <button 
+                          onClick={() => { setIsEditing(true); setShowMenu(false); }}
+                          className="w-full px-4 py-2 text-left text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50 flex items-center gap-2 transition-colors"
+                        >
+                          <Edit className="w-3.5 h-3.5" /> Edit Name
+                        </button>
+                        <button 
+                          onClick={() => { setIsDeleting(true); setShowMenu(false); }}
+                          className="w-full px-4 py-2 text-left text-sm text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/30 flex items-center gap-2 transition-colors"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" /> Delete
+                        </button>
+                      </div>
+                    </>
+                  )}
                 </>
               )}
             </div>

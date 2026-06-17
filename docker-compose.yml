@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 services:
   db:
     image: postgres:15
@@ -10,6 +10,56 @@ services:
       - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-powersync.sql:/docker-entrypoint-initdb.d/init-powersync.sql
+    command: ["postgres", "-c", "wal_level=logical"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d quiz_admin"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  mongo:
+    image: mongo:7.0
+    command: --replSet rs0 --bind_ip_all --quiet
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_storage:/data/db
+
+  mongo-rs-init:
+    image: mongo:7.0
+    depends_on:
+      - mongo
+    restart: on-failure
+    entrypoint:
+      - bash
+      - -c
+      - >
+        mongosh --host mongo:27017 --eval
+        'try{rs.status().ok && quit(0)} catch(e) {} rs.initiate({_id: "rs0", version: 1, members: [{ _id: 0, host: "mongo:27017" }]})'
+
+  powersync:
+    image: journeyapps/powersync-service:latest
+    restart: unless-stopped
+    command: ["start", "-r", "unified"]
+    depends_on:
+      db:
+        condition: service_healthy
+      mongo-rs-init:
+        condition: service_completed_successfully
+    volumes:
+      - ./powersync:/config
+    environment:
+      POWERSYNC_CONFIG_PATH: /config/service.yaml
+      PS_DATA_SOURCE_URI: "postgresql://postgres:password@db:5432/quiz_admin"
+      PS_MONGO_URI: "mongodb://mongo:27017/powersync"
+      PS_JWKS_URL: "http://host.docker.internal:3000/api/auth/jwks"
+      PS_PORT: "8080"
+      NODE_OPTIONS: "--max-old-space-size=512"
+    ports:
+      - "8090:8080"
 
 volumes:
   postgres_data:
+  mongo_storage:

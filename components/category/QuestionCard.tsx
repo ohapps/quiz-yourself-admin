@@ -10,9 +10,10 @@ import { AlertModal } from "@/components/ui/AlertModal";
 interface QuestionCardProps {
   question: Question;
   index: number;
+  readOnly?: boolean;
 }
 
-export function QuestionCard({ question: q, index }: QuestionCardProps) {
+export function QuestionCard({ question: q, index, readOnly = false }: QuestionCardProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   
@@ -110,7 +111,7 @@ export function QuestionCard({ question: q, index }: QuestionCardProps) {
               `}>
                 {q.difficulty}
               </span>
-              <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+              <div className={`${readOnly ? 'hidden' : 'opacity-0 group-hover:opacity-100'} transition-opacity flex items-center gap-1`}>
                 <button 
                   onClick={() => setIsEditing(true)}
                   disabled={isDeleting}

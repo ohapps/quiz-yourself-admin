@@ -1,10 +1,13 @@
 import { prisma } from "@/lib/prisma";
 import type { CategoryWithCounts, CategoryWithQuestions } from "./types";
 
-export async function getCategoriesWithQuestionCount(search?: string): Promise<CategoryWithCounts[]> {
+export async function getCategoriesWithQuestionCount(search?: string, source: 'system' | 'user' = 'system'): Promise<CategoryWithCounts[]> {
+  const userFilter = source === 'system' ? { userId: null } : { userId: { not: null } };
+
   const categories = await prisma.category.findMany({
     where: { 
       parentId: null,
+      ...userFilter,
       ...(search ? {
         OR: [
           { name: { contains: search, mode: 'insensitive' } },

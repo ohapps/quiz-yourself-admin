@@ -23,6 +23,7 @@ export default async function CategoryPage(props: PageProps) {
     notFound();
   }
 
+  const isReadOnly = category.userId !== null;
   const difficultyFilter = searchParams.difficulty;
   const filteredQuestions = difficultyFilter 
     ? category.questions.filter((q: Question) => q.difficulty === difficultyFilter)
@@ -36,6 +37,7 @@ export default async function CategoryPage(props: PageProps) {
         categoryName={category.name} 
         questionCount={filteredQuestions.length} 
         currentDifficulty={difficultyFilter}
+        readOnly={isReadOnly}
       />
 
       <main className="container mx-auto px-4 py-8 max-w-5xl">
@@ -59,7 +61,7 @@ export default async function CategoryPage(props: PageProps) {
         ) : (
           <div className="space-y-6">
             {filteredQuestions.map((q: Question, index: number) => (
-              <QuestionCard key={q.id} question={q} index={index} />
+              <QuestionCard key={q.id} question={q} index={index} readOnly={isReadOnly} />
             ))}
           </div>
         )}

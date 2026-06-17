@@ -5,7 +5,6 @@ import { google } from "@ai-sdk/google";
 import { z } from "zod";
 import { DifficultyLevel } from "@/lib/data/types";
 import { getQuestionsByCategory, createMultipleQuestionRecords } from "@/lib/data/questions";
-import { incrementContentVersion } from "@/lib/data/app-state";
 import { revalidatePath } from "next/cache";
 
 type QuestionType = "multiple_choice" | "numeric";
@@ -86,7 +85,6 @@ export async function generateMultipleQuestions(
       });
 
       await createMultipleQuestionRecords(recordsToInsert);
-      await incrementContentVersion();
       revalidatePath(`/category/${categoryId}`);
       return { success: true, count: recordsToInsert.length, requestedCount: count };
     }
@@ -136,7 +134,6 @@ export async function generateMultipleQuestions(
     });
 
     await createMultipleQuestionRecords(recordsToInsert);
-    await incrementContentVersion();
     revalidatePath(`/category/${categoryId}`);
 
     return { 

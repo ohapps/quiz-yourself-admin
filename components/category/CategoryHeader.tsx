@@ -11,9 +11,10 @@ interface CategoryHeaderProps {
   categoryName: string;
   questionCount: number;
   currentDifficulty?: string;
+  readOnly?: boolean;
 }
 
-export function CategoryHeader({ categoryId, categoryName, questionCount, currentDifficulty }: CategoryHeaderProps) {
+export function CategoryHeader({ categoryId, categoryName, questionCount, currentDifficulty, readOnly = false }: CategoryHeaderProps) {
   const [isAdding, setIsAdding] = useState(false);
   const [isGeneratingAI, setIsGeneratingAI] = useState(false);
 
@@ -36,19 +37,27 @@ export function CategoryHeader({ categoryId, categoryName, questionCount, curren
             </span>
           </div>
           <div className="flex gap-3">
-            <button
-              onClick={() => setIsGeneratingAI(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-fuchsia-600 to-purple-600 hover:from-fuchsia-500 hover:to-purple-500 text-white rounded-xl font-medium shadow-md shadow-purple-600/20 transition-all hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 text-sm"
-            >
-              <Sparkles className="w-4 h-4" />
-              Generate with AI
-            </button>
-            <button
-              onClick={() => setIsAdding(true)}
-              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-medium shadow-md shadow-indigo-600/20 transition-all hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 text-sm"
-            >
-              + Add Question
-            </button>
+            {readOnly ? (
+              <span className="px-3 py-1.5 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-400 rounded-xl text-xs font-medium">
+                User Content — Read Only
+              </span>
+            ) : (
+              <>
+                <button
+                  onClick={() => setIsGeneratingAI(true)}
+                  className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-fuchsia-600 to-purple-600 hover:from-fuchsia-500 hover:to-purple-500 text-white rounded-xl font-medium shadow-md shadow-purple-600/20 transition-all hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 text-sm"
+                >
+                  <Sparkles className="w-4 h-4" />
+                  Generate with AI
+                </button>
+                <button
+                  onClick={() => setIsAdding(true)}
+                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-medium shadow-md shadow-indigo-600/20 transition-all hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 text-sm"
+                >
+                  + Add Question
+                </button>
+              </>
+            )}
           </div>
         </div>
       </header>
