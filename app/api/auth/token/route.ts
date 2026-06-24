@@ -7,7 +7,10 @@ const AUTH0_DOMAIN = process.env.AUTH0_DOMAIN || "dev--hkrho7z.us.auth0.com";
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const userId = searchParams.get("user_id");
-  const auth0Token = searchParams.get("auth0_token");
+
+  // Check for Auth0 token in Authorization header
+  const authHeader = request.headers.get("Authorization");
+  const auth0Token = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null;
 
   let resolvedUserId: string;
 
