@@ -2,9 +2,13 @@ import { NextResponse } from "next/server";
 import * as crypto from "crypto";
 import { getPrivateKey } from "@/lib/powersync-auth";
 
-const AUTH0_DOMAIN = process.env.AUTH0_DOMAIN || "dev--hkrho7z.us.auth0.com";
+const AUTH0_DOMAIN = process.env.AUTH0_DOMAIN;
 
 export async function GET(request: Request) {
+  if (!AUTH0_DOMAIN) {
+    return NextResponse.json({ error: "AUTH0_DOMAIN not configured" }, { status: 500 });
+  }
+
   const { searchParams } = new URL(request.url);
   const userId = searchParams.get("user_id");
 
