@@ -12,13 +12,15 @@ export function getPrivateKey(): string {
 }
 
 export function getPublicKeyJwk() {
-  let pem: string;
-  if (process.env.POWERSYNC_PUBLIC_KEY) {
-    pem = process.env.POWERSYNC_PUBLIC_KEY.replace(/\\n/g, "\n");
-  } else {
-    pem = fs.readFileSync(path.join(KEYS_DIR, "public.pem"), "utf-8");
-  }
+  const pem = getPublicKeyPem();
   const key = crypto.createPublicKey(pem);
   const jwk = key.export({ format: "jwk" });
   return { ...jwk, kid: "powersync-dev", alg: "RS256", use: "sig" };
+}
+
+export function getPublicKeyPem(): string {
+  if (process.env.POWERSYNC_PUBLIC_KEY) {
+    return process.env.POWERSYNC_PUBLIC_KEY.replace(/\\n/g, "\n");
+  }
+  return fs.readFileSync(path.join(KEYS_DIR, "public.pem"), "utf-8");
 }
