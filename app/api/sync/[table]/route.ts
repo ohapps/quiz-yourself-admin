@@ -43,6 +43,13 @@ export async function POST(
           },
         });
         break;
+      case "Favorite":
+        await prisma.favorite.upsert({
+          where: { id: body.id },
+          create: { id: body.id, userId: body.userId, categoryId: body.categoryId },
+          update: { userId: body.userId, categoryId: body.categoryId },
+        });
+        break;
       default:
         return NextResponse.json({ error: `Unknown table: ${table}` }, { status: 400 });
     }

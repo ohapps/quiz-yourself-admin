@@ -15,3 +15,4 @@ streams:
     queries:
       - SELECT "id", "name", "parentId", "userId" FROM "Category" WHERE "userId" = auth.user_id()
       - SELECT "id", "question", "options", "correctAnswer", "difficulty", "type", "shownCount", "categoryId", "imageUrl", "userId" FROM "Question" WHERE "userId" = auth.user_id()
+      - SELECT "id", "userId", "categoryId" FROM "Favorite" WHERE "userId" = auth.user_id()

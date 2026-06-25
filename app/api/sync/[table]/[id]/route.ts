@@ -44,6 +44,9 @@ export async function DELETE(
       case "Question":
         await prisma.question.delete({ where: { id } });
         break;
+      case "Favorite":
+        await prisma.favorite.delete({ where: { id } });
+        break;
       default:
         return NextResponse.json({ error: `Unknown table: ${table}` }, { status: 400 });
     }
