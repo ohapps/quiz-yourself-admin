@@ -1,5 +1,6 @@
-import { Database, LogOut } from "lucide-react";
+import { Database, LogOut, AlertCircle } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 
 interface HeaderProps {
   user?: {
@@ -22,6 +23,13 @@ export function Header({ user }: HeaderProps) {
           </h1>
         </div>
         <div className="flex items-center gap-4">
+          <Link
+            href="/reports"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 transition-colors"
+          >
+            <AlertCircle className="w-4 h-4" />
+            Reports
+          </Link>
 
           {user && (
             <div className="flex items-center gap-3">

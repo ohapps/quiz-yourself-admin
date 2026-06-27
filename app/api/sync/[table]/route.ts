@@ -50,6 +50,23 @@ export async function POST(
           update: { userId: body.userId, categoryId: body.categoryId },
         });
         break;
+      case "QuestionReport":
+        await prisma.questionReport.upsert({
+          where: { id: body.id },
+          create: {
+            id: body.id,
+            questionId: body.questionId,
+            userId: body.userId,
+            description: body.description,
+            createdAt: body.createdAt ? new Date(body.createdAt) : new Date(),
+            resolved: body.resolved === 1 || body.resolved === true,
+          },
+          update: {
+            description: body.description,
+            resolved: body.resolved === 1 || body.resolved === true,
+          },
+        });
+        break;
       default:
         return NextResponse.json({ error: `Unknown table: ${table}` }, { status: 400 });
     }

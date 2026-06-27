@@ -44,3 +44,15 @@ model Favorite {
   @@index([userId])
 }
 
+model QuestionReport {
+  id          String   @id @default(uuid())
+  questionId  String
+  userId      String
+  description String
+  createdAt   DateTime @default(now())
+  resolved    Boolean  @default(false)
+
+  @@index([resolved])
+  @@index([questionId])
+}
+
