@@ -1,6 +1,6 @@
 "use server";
 
-import { createQuestionRecord, deleteQuestionRecord, updateQuestionRecord } from "@/lib/data/questions";
+import { createQuestionRecord, createMultipleQuestionRecords, deleteQuestionRecord, updateQuestionRecord } from "@/lib/data/questions";
 import { DifficultyLevel } from "@/lib/data/types";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
@@ -130,5 +130,53 @@ export async function deleteQuestion(id: string, categoryId: string) {
   } catch (error) {
     console.error("Failed to delete question:", error);
     return { success: false, error: "Failed to delete question" };
+  }
+}
+
+const ImportQuestionsSchema = z.object({
+  categoryId: z.string().min(1, "Category ID is required"),
+  questions: z.array(QuestionSchema).min(1, "At least one question is required"),
+});
+
+export async function importQuestionsAction(
+  categoryId: string,
+  questions: Array<{
+    question: string;
+    options: string[];
+    correctAnswer: string;
+    difficulty: string;
+    type?: string;
+    imageUrl?: string | null;
+  }>
+) {
+  try {
+    const validated = ImportQuestionsSchema.parse({
+      categoryId,
+      questions: questions.map((q) => ({
+        ...q,
+        categoryId,
+      })),
+    });
+
+    await createMultipleQuestionRecords(
+      validated.questions.map((q) => ({
+        question: q.question,
+        options: q.options,
+        correctAnswer: q.correctAnswer,
+        difficulty: q.difficulty,
+        type: q.type,
+        categoryId: validated.categoryId,
+        imageUrl: q.imageUrl,
+      }))
+    );
+
+    revalidatePath(`/category/${validated.categoryId}`);
+    return { success: true, count: validated.questions.length };
+  } catch (error) {
+    console.error("Failed to import questions:", error);
+    if (error instanceof z.ZodError) {
+      return { success: false, error: error.issues.map((e: z.ZodIssue) => e.message).join(", ") };
+    }
+    return { success: false, error: "Failed to import questions" };
   }
 }
