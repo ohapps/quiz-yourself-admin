@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowLeft, Sparkles } from "lucide-react";
+import { ArrowLeft, Sparkles, Upload } from "lucide-react";
 import Link from "next/link";
 import { QuestionForm } from "./QuestionForm";
 import { AIGenerateModal } from "./AIGenerateModal";
+import { ImportCsvModal } from "./ImportCsvModal";
 
 interface CategoryHeaderProps {
   categoryId: string;
@@ -17,6 +18,7 @@ interface CategoryHeaderProps {
 export function CategoryHeader({ categoryId, categoryName, questionCount, currentDifficulty, readOnly = false }: CategoryHeaderProps) {
   const [isAdding, setIsAdding] = useState(false);
   const [isGeneratingAI, setIsGeneratingAI] = useState(false);
+  const [isImportingCsv, setIsImportingCsv] = useState(false);
 
   return (
     <>
@@ -36,13 +38,20 @@ export function CategoryHeader({ categoryId, categoryName, questionCount, curren
               {questionCount} Questions
             </span>
           </div>
-          <div className="flex gap-3">
+          <div className="flex items-center gap-3">
             {readOnly ? (
               <span className="px-3 py-1.5 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-400 rounded-xl text-xs font-medium">
                 User Content — Read Only
               </span>
             ) : (
               <>
+                <button
+                  onClick={() => setIsImportingCsv(true)}
+                  className="flex items-center gap-2 px-3.5 py-2 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700/60 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 rounded-xl font-medium shadow-sm transition-all hover:-translate-y-0.5 active:translate-y-0 text-sm"
+                >
+                  <Upload className="w-4 h-4 text-indigo-500" />
+                  Import CSV
+                </button>
                 <button
                   onClick={() => setIsGeneratingAI(true)}
                   className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-fuchsia-600 to-purple-600 hover:from-fuchsia-500 hover:to-purple-500 text-white rounded-xl font-medium shadow-md shadow-purple-600/20 transition-all hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 text-sm"
@@ -83,6 +92,19 @@ export function CategoryHeader({ categoryId, categoryName, questionCount, curren
               initialDifficulty={currentDifficulty}
               onSuccess={() => setIsGeneratingAI(false)}
               onCancel={() => setIsGeneratingAI(false)}
+            />
+          </div>
+        </div>
+      )}
+
+      {isImportingCsv && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+          <div className="w-full max-w-4xl animate-in fade-in zoom-in-95 duration-200">
+            <ImportCsvModal
+              categoryId={categoryId}
+              categoryName={categoryName}
+              onSuccess={() => setIsImportingCsv(false)}
+              onCancel={() => setIsImportingCsv(false)}
             />
           </div>
         </div>
