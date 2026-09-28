@@ -44,10 +44,21 @@ export async function POST(
         });
         break;
       case "Favorite":
-        await prisma.favorite.upsert({
-          where: { id: body.id },
-          create: { id: body.id, userId: body.userId, categoryId: body.categoryId },
-          update: { userId: body.userId, categoryId: body.categoryId },
+        // Prefer the client's row id, and clear any prior favorite for the same
+        // user+category so the unique constraint can't reject the upload.
+        await prisma.$transaction(async (tx) => {
+          await tx.favorite.deleteMany({
+            where: {
+              userId: body.userId,
+              categoryId: body.categoryId,
+              NOT: { id: body.id },
+            },
+          });
+          await tx.favorite.upsert({
+            where: { id: body.id },
+            create: { id: body.id, userId: body.userId, categoryId: body.categoryId },
+            update: { userId: body.userId, categoryId: body.categoryId },
+          });
         });
         break;
       case "QuestionReport":

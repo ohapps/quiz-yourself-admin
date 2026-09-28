@@ -91,7 +91,25 @@ export async function updateCategoryRecord(id: string, name: string, parentId?: 
 }
 
 export async function deleteCategoryRecord(id: string) {
-  return await prisma.category.delete({
-    where: { id }
+  return await prisma.$transaction(async (tx) => {
+    // Subcategories must be removed first (no onDelete cascade on parentId)
+    const children = await tx.category.findMany({
+      where: { parentId: id },
+      select: { id: true },
+    });
+    const childIds = children.map((c) => c.id);
+    const allIds = [id, ...childIds];
+
+    // Favorites have no FK cascade — clean them up explicitly
+    await tx.favorite.deleteMany({
+      where: { categoryId: { in: allIds } },
+    });
+
+    if (childIds.length > 0) {
+      await tx.category.deleteMany({ where: { id: { in: childIds } } });
+    }
+
+    // Questions cascade via Question.category onDelete: Cascade
+    await tx.category.delete({ where: { id } });
   });
 }
