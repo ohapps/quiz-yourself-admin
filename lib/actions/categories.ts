@@ -49,6 +49,7 @@ export async function deleteCategory(id: string) {
     await deleteCategoryRecord(id);
 
     revalidatePath("/");
+    revalidatePath(`/category/${id}`);
     return { success: true };
   } catch (error) {
     console.error("Failed to delete category:", error);
