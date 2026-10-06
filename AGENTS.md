@@ -18,4 +18,4 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 ## Server Actions (lib/actions)
 - **Validation**: Always use Zod to validate input data at the start of a Server Action.
-- **State Updates**: Ensure content versioning (`incrementContentVersion`) is handled for any data mutations.
+- **State Updates**: Prefer reusable data-layer mutations in `lib/data/` / `lib/actions/` so mobile clients can pull fresh snapshots via `/api/content`.

@@ -1,7 +1,5 @@
 import { NextResponse } from "next/server";
-import * as crypto from "crypto";
 import { prisma } from "@/lib/prisma";
-import { getPublicKeyPem } from "@/lib/powersync-auth";
 
 const AUTH0_DOMAIN = process.env.AUTH0_DOMAIN;
 
@@ -10,30 +8,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "AUTH0_DOMAIN not configured" }, { status: 500 });
   }
 
-  const { deviceToken, auth0Token } = await request.json();
+  const { deviceId, auth0Token } = await request.json();
 
-  if (!deviceToken || !auth0Token) {
+  if (!deviceId || !auth0Token) {
     return NextResponse.json(
-      { error: "deviceToken and auth0Token are required" },
+      { error: "deviceId and auth0Token are required" },
       { status: 400 }
     );
-  }
-
-  // Verify device ownership: validate the PowerSync JWT we issued for this device
-  let deviceId: string;
-  try {
-    const [headerB64, payloadB64, signatureB64] = deviceToken.split(".");
-    const publicKey = getPublicKeyPem();
-    const data = `${headerB64}.${payloadB64}`;
-    const signature = Buffer.from(signatureB64, "base64url");
-    const valid = crypto.verify("sha256", Buffer.from(data), publicKey, signature);
-    if (!valid) throw new Error("Invalid signature");
-
-    const payload = JSON.parse(Buffer.from(payloadB64, "base64url").toString());
-    deviceId = payload.sub;
-    if (!deviceId) throw new Error("No sub in token");
-  } catch {
-    return NextResponse.json({ error: "Invalid device token" }, { status: 401 });
   }
 
   // Verify Auth0 token and extract user ID
@@ -48,8 +29,12 @@ export async function POST(request: Request) {
   const info = await userInfo.json();
   const auth0UserId = info.sub;
 
+  if (!auth0UserId) {
+    return NextResponse.json({ error: "No user id in Auth0 token" }, { status: 401 });
+  }
+
   // Migrate all user-created content from device ID to Auth0 ID
-  const [catCount, qCount] = await prisma.$transaction([
+  const [catCount, qCount, favCount, reportCount] = await prisma.$transaction([
     prisma.category.updateMany({
       where: { userId: deviceId },
       data: { userId: auth0UserId },
@@ -58,10 +43,23 @@ export async function POST(request: Request) {
       where: { userId: deviceId },
       data: { userId: auth0UserId },
     }),
+    prisma.favorite.updateMany({
+      where: { userId: deviceId },
+      data: { userId: auth0UserId },
+    }),
+    prisma.questionReport.updateMany({
+      where: { userId: deviceId },
+      data: { userId: auth0UserId },
+    }),
   ]);
 
   return NextResponse.json({
     ok: true,
-    migrated: { categories: catCount.count, questions: qCount.count },
+    migrated: {
+      categories: catCount.count,
+      questions: qCount.count,
+      favorites: favCount.count,
+      reports: reportCount.count,
+    },
   });
 }
