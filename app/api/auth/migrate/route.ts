@@ -1,65 +1,104 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-
-const AUTH0_DOMAIN = process.env.AUTH0_DOMAIN;
+import { verifyMobileToken } from "@/lib/auth-mobile";
 
 export async function POST(request: Request) {
-  if (!AUTH0_DOMAIN) {
-    return NextResponse.json({ error: "AUTH0_DOMAIN not configured" }, { status: 500 });
-  }
+  const authHeader = request.headers.get("Authorization");
+  const bearerToken = authHeader?.startsWith("Bearer ") ? authHeader.slice(7).trim() : null;
 
-  const { deviceId, auth0Token } = await request.json();
+  const body = await request.json().catch(() => ({}));
+  const { deviceId, auth0Token } = body;
+  const token = bearerToken || auth0Token;
 
-  if (!deviceId || !auth0Token) {
+  if (!deviceId || !token) {
     return NextResponse.json(
-      { error: "deviceId and auth0Token are required" },
+      { error: "deviceId and auth0Token (or Bearer Authorization header) are required" },
       { status: 400 }
     );
   }
 
   // Verify Auth0 token and extract user ID
-  const userInfo = await fetch(`https://${AUTH0_DOMAIN}/userinfo`, {
-    headers: { Authorization: `Bearer ${auth0Token}` },
-  });
-
-  if (!userInfo.ok) {
+  const auth = await verifyMobileToken(token);
+  if (!auth?.userId) {
     return NextResponse.json({ error: "Invalid Auth0 token" }, { status: 401 });
   }
 
-  const info = await userInfo.json();
-  const auth0UserId = info.sub;
-
-  if (!auth0UserId) {
-    return NextResponse.json({ error: "No user id in Auth0 token" }, { status: 401 });
-  }
+  const auth0UserId = auth.userId;
 
   // Migrate all user-created content from device ID to Auth0 ID
-  const [catCount, qCount, favCount, reportCount] = await prisma.$transaction([
-    prisma.category.updateMany({
+  const migrated = await prisma.$transaction(async (tx) => {
+    const catRes = await tx.category.updateMany({
       where: { userId: deviceId },
       data: { userId: auth0UserId },
-    }),
-    prisma.question.updateMany({
+    });
+
+    const qRes = await tx.question.updateMany({
       where: { userId: deviceId },
       data: { userId: auth0UserId },
-    }),
-    prisma.favorite.updateMany({
+    });
+
+    // Resolve any duplicate favorites before re-assigning userId
+    // 1. Delete any favorites on deviceId that the user already has under auth0UserId
+    const existingUserFavorites = await tx.favorite.findMany({
+      where: { userId: auth0UserId },
+      select: { categoryId: true },
+    });
+    const existingCategoryIds = existingUserFavorites.map((f) => f.categoryId);
+
+    if (existingCategoryIds.length > 0) {
+      await tx.favorite.deleteMany({
+        where: {
+          userId: deviceId,
+          categoryId: { in: existingCategoryIds },
+        },
+      });
+    }
+
+    // 2. In case deviceId has duplicate category favorites itself, deduplicate them
+    const deviceFavorites = await tx.favorite.findMany({
+      where: { userId: deviceId },
+    });
+    const seenCategories = new Set<string>();
+    const duplicateIdsToDelete: string[] = [];
+    for (const f of deviceFavorites) {
+      if (seenCategories.has(f.categoryId)) {
+        duplicateIdsToDelete.push(f.id);
+      } else {
+        seenCategories.add(f.categoryId);
+      }
+    }
+    if (duplicateIdsToDelete.length > 0) {
+      await tx.favorite.deleteMany({
+        where: { id: { in: duplicateIdsToDelete } },
+      });
+    }
+
+    const favRes = await tx.favorite.updateMany({
       where: { userId: deviceId },
       data: { userId: auth0UserId },
-    }),
-    prisma.questionReport.updateMany({
+    });
+
+    const reportRes = await tx.questionReport.updateMany({
       where: { userId: deviceId },
       data: { userId: auth0UserId },
-    }),
-  ]);
+    });
+
+    const historyRes = await tx.quizHistory.updateMany({
+      where: { userId: deviceId },
+      data: { userId: auth0UserId },
+    });
+
+    return {
+      categories: catRes.count,
+      questions: qRes.count,
+      favorites: favRes.count,
+      reports: reportRes.count,
+      quizHistory: historyRes.count,
+    };
+  });
 
   return NextResponse.json({
     ok: true,
-    migrated: {
-      categories: catCount.count,
-      questions: qCount.count,
-      favorites: favCount.count,
-      reports: reportCount.count,
-    },
+    migrated,
   });
 }
