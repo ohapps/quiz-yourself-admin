@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { NextRequest } from "next/server";
 import { auth0 } from "@/lib/auth0";
 
 /**
@@ -34,4 +35,20 @@ export async function requireAuth() {
   }
 
   return session;
+}
+
+/**
+ * Get the current admin session for route handlers / API endpoints.
+ * Returns null if unauthenticated or not on the allow-list.
+ */
+export async function getAdminSession(req?: NextRequest) {
+  try {
+    const session = req ? await auth0.getSession(req) : await auth0.getSession();
+    if (!session || !isAllowedEmail(session.user.email)) {
+      return null;
+    }
+    return session;
+  } catch {
+    return null;
+  }
 }

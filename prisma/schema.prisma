@@ -56,3 +56,15 @@ model QuestionReport {
   @@index([questionId])
 }
 
+model QuizHistory {
+  id          String @id @default(uuid())
+  userId      String
+  date        String
+  mode        String
+  categoryId  String
+  difficulty  String
+  playerCount Int
+  scoreData   Json
+
+  @@index([userId])
+}
