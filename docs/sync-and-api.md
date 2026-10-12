@@ -214,8 +214,8 @@ Deletes a user-owned record from the cloud database.
 ## 4. Mobile Client Sync Engine
 
 The mobile sync engine is implemented across:
-- [`QuizYourself/lib/sync.ts`](file:///Users/tcmh4/personal/quiz-yourself/QuizYourself/lib/sync.ts): Queue flushing and snapshot download.
-- [`QuizYourself/lib/database.ts`](file:///Users/tcmh4/personal/quiz-yourself/QuizYourself/lib/database.ts): SQLite schema, `pending_ops` table, and snapshot application.
+- `QuizYourself/lib/sync.ts`: Queue flushing and snapshot download.
+- `QuizYourself/lib/database.ts`: SQLite schema, `pending_ops` table, and snapshot application.
 
 ### The Write-Ahead Queue (`pending_ops`)
 Whenever a local mutation occurs on the device (e.g. `addCategory`, `updateQuestion`, `deleteQuestion`, `toggleFavorite`, `addQuestionReport`, `saveQuizResult`), an operation record is saved to the SQLite `pending_ops` table and a debounced sync is scheduled:
