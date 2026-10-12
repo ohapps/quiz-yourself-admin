@@ -134,7 +134,7 @@ Downloads the content catalog and backed-up user state.
     ]
   }
   ```
-- **Mobile Processing**: Reconciles system content AND restores/syncs user's cloud content inside a single SQLite transaction.
+- **Mobile Processing**: Reconciles system content AND restores/syncs the user's cloud content, preserving any local rows that still have queued edits.
 
 ---
 
@@ -196,35 +196,7 @@ Deletes a user-owned record from the cloud database.
 
 ---
 
-### 3.5 Legacy Device Migration: `POST /api/auth/migrate`
-
-Re-attributes any legacy rows stored in Postgres under an anonymous `deviceId` to the user's permanent Auth0 ID.
-
-* **Authentication**: Token passed in `auth0Token` body property or `Authorization: Bearer <token>`.
-* **Request Body**:
-  ```json
-  {
-    "deviceId": "device-uuid-123",
-    "auth0Token": "<accessToken>"
-  }
-  ```
-* **Response `200 OK`**:
-  ```json
-  {
-    "ok": true,
-    "migrated": {
-      "categories": 0,
-      "questions": 0,
-      "favorites": 0,
-      "reports": 0,
-      "quizHistory": 0
-    }
-  }
-  ```
-
----
-
-### 3.6 Question Reports: `POST /api/reports` & Admin Triage
+### 3.5 Question Reports: `POST /api/reports` & Admin Triage
 
 - `POST /api/reports`:
   - **Auth**: Optional. If Bearer token is provided, associates `userId = token.userId`, otherwise uses body `userId` or `"anonymous"`.
@@ -243,21 +215,25 @@ Re-attributes any legacy rows stored in Postgres under an anonymous `deviceId` t
 
 The mobile sync engine is implemented across:
 - [`QuizYourself/lib/sync.ts`](file:///Users/tcmh4/personal/quiz-yourself/QuizYourself/lib/sync.ts): Queue flushing and snapshot download.
-- [`QuizYourself/lib/database.ts`](file:///Users/tcmh4/personal/quiz-yourself/QuizYourself/lib/database.ts): SQLite schema, `pending_ops` table, and transactional snapshot application.
+- [`QuizYourself/lib/database.ts`](file:///Users/tcmh4/personal/quiz-yourself/QuizYourself/lib/database.ts): SQLite schema, `pending_ops` table, and snapshot application.
 
 ### The Write-Ahead Queue (`pending_ops`)
-Whenever a local mutation occurs on the device (e.g. `addCategory`, `updateQuestion`, `deleteQuestion`, `toggleFavorite`, `addQuizHistory`), an operation record is saved to the SQLite `pending_ops` table:
+Whenever a local mutation occurs on the device (e.g. `addCategory`, `updateQuestion`, `deleteQuestion`, `toggleFavorite`, `addQuestionReport`, `saveQuizResult`), an operation record is saved to the SQLite `pending_ops` table and a debounced sync is scheduled:
 
 ```sql
 CREATE TABLE pending_ops (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  table_name TEXT NOT NULL,
-  operation TEXT NOT NULL,   -- 'PUT', 'PATCH', or 'DELETE'
-  row_id TEXT NOT NULL,
-  payload TEXT,              -- JSON payload
-  created_at INTEGER NOT NULL
+  table_name TEXT NOT NULL,   -- 'Category' | 'Question' | 'Favorite' | 'QuestionReport' | 'QuizHistory'
+  op TEXT NOT NULL,           -- 'put' | 'delete'
+  record_id TEXT NOT NULL,
+  payload TEXT,               -- JSON record for 'put'; NULL for 'delete'
+  created_at TEXT NOT NULL
 );
 ```
+
+`put` ops are uploaded with `POST /api/sync/[table]` (an upsert), and `delete` ops with
+`DELETE /api/sync/[table]/[id]`. Retryable failures (network, `5xx`, `401`) leave the op
+queued; non-retryable `4xx` conflicts are dropped so the queue can't get stuck.
 
 ### Sync Lifecycle (`syncNow()`)
 
@@ -279,7 +255,7 @@ sequenceDiagram
         Mobile->>Server: GET /api/content (Bearer token)
         Server->>DB: Query system content + user content
         Server-->>Mobile: 200 OK (authenticated: true, system + user rows)
-        Note over Mobile: Reconcile local SQLite in transaction
+        Note over Mobile: Reconcile local SQLite (preserve pending edits)
     else User is Anonymous (token == null)
         Note over Mobile: Skip pending_ops flush (keep custom content local)
         Mobile->>Server: GET /api/content (No auth header)
@@ -294,11 +270,8 @@ sequenceDiagram
 When an anonymous user signs in for the first time:
 1. Auth0 PKCE login completes and returns access & refresh tokens.
 2. Tokens are stored securely in local SQLite `app_metadata`.
-3. `migrateLocalUserId(deviceId, auth0UserId)` runs:
-   - Updates local categories, questions, favorites, and quiz history rows to reference `auth0UserId`.
-   - Rewrites any pending ops in `pending_ops` to use `auth0UserId`.
-4. `enqueueAllQuizHistoryForBackup()` enqueues all prior quiz runs into `pending_ops`.
-5. `POST /api/auth/migrate` is called to re-attribute any legacy server-side records.
-6. `syncNow()` runs:
+3. `migrateLocalUserId(deviceId, auth0UserId)` runs and updates local categories, questions, favorites, reports, and quiz history rows to reference `auth0UserId`. (Queued ops keep their original payload; the server always stamps the authenticated user.)
+4. `enqueueAllQuizHistoryForBackup()` assigns a stable id to any locally recorded quiz runs and enqueues them into `pending_ops`.
+5. `syncNow()` runs:
    - Drains `pending_ops`, uploading all custom categories, questions, and quiz history to the user's cloud account.
    - Pulls back the combined snapshot.
