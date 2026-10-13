@@ -21,7 +21,7 @@ QuizYourself is built as an **offline-first** application:
                       └──────┬────────────────────────────────┬──────┘
                              │                                │
       1. Anonymous Sync      │                                │ 2. Authenticated Sync
-    (GET /api/content)       │                                │ (POST/PATCH/DELETE /api/sync)
+    (GET /api/content)       │                                │ (POST/DELETE /api/sync)
     (No Auth Header)         │                                │ (GET /api/content)
                              │                                │ (Bearer <Auth0 Token>)
                              ▼                                ▼
@@ -175,18 +175,7 @@ Content-Type: application/json
 
 ---
 
-### 3.3 Partial Update: `PATCH /api/sync/[table]/[id]`
-
-Updates an existing user record.
-
-* **Authentication**: **Required** (`Authorization: Bearer <token>`). Returns `401 Unauthorized` if missing.
-* **Supported Tables**: `Category`, `Question`, `QuizHistory`.
-* **Authorization**: The target row must exist and have `userId === token.userId`. Attempting to patch system content (`userId IS NULL`) or other users' rows returns `403 Forbidden`.
-* **Payload**: JSON object containing fields to update (e.g. `{ "shownCount": 5 }` or `{ "name": "New Category Name" }`).
-
----
-
-### 3.4 Deletion: `DELETE /api/sync/[table]/[id]`
+### 3.3 Deletion: `DELETE /api/sync/[table]/[id]`
 
 Deletes a user-owned record from the cloud database.
 
@@ -196,7 +185,7 @@ Deletes a user-owned record from the cloud database.
 
 ---
 
-### 3.5 Question Reports: `POST /api/reports` & Admin Triage
+### 3.4 Question Reports: `POST /api/reports` & Admin Triage
 
 - `POST /api/reports`:
   - **Auth**: Optional. If Bearer token is provided, associates `userId = token.userId`, otherwise uses body `userId` or `"anonymous"`.
@@ -246,7 +235,7 @@ sequenceDiagram
     alt If User is Authenticated (token != null)
         Note over Mobile: Flush pending_ops queue
         loop For each pending_op in FIFO order
-            Mobile->>Server: POST/PATCH/DELETE /api/sync/:table (Bearer token)
+            Mobile->>Server: POST/DELETE /api/sync/:table (Bearer token)
             Server->>Server: Verify token & enforce userId == token.sub
             Server->>DB: Upsert / Update / Delete row
             Server-->>Mobile: 200 OK
